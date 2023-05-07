@@ -1,6 +1,5 @@
 import random
 
-
 # Global constant to represent certain slot machine properties
 MAX_LINES = 3
 MAX_BET = 1000
@@ -16,6 +15,36 @@ symbol_count = {
     "C": 6,
     "D": 8
 }
+
+symbol_values = {
+    "A": 5,
+    "B": 4,
+    "C": 3,
+    "D": 2
+}
+
+
+# Function to check whether the user has won anything from their spin
+def check_winnings(columns, lines, bet):
+    winnings = 0
+    winning_lines = []
+    # Loop through every line the user bet on, same as looping through every row that was bet on
+    for line in range(lines):
+        # Get the corresponding symbol from the first column in that line
+        symbol = columns[0][line]
+        # Loop through every column
+        for column in columns:
+            # Check the corresponding symbol in the following columns
+            symbol_to_check = column[line]
+            # If they don't match, can stop checking since no winnings and just break
+            if symbol != symbol_to_check:
+                break
+        # Else calculate winnings
+        else:
+            winnings += symbol_values[symbol] * bet
+            winning_lines.append(line + 1)
+
+    return winnings, winning_lines
 
 
 # Function to randomly generate the symbols that appear on each column
@@ -133,8 +162,8 @@ def get_bet():
 
     return bet
 
-def main():
-    balance = deposit()
+
+def spin(balance):
     lines = get_lines()
 
     # User could try and be cheeky and bet more than what they can afford, keep asking them until they bet an
@@ -152,5 +181,21 @@ def main():
     # Get the slots/columns from a simulated spin of the machine
     slots = get_slot_spin(ROWS, COLS, symbol_count)
     print_slots(slots)
+    winnings, winning_lines = check_winnings(slots, lines, bet)
+    print(f"Your winnings are ${winnings}!")
+    # Use unpack/splat operator on winning lines list to quickly and easily show the lines the user won on
+    print(f"You have won on lines: ", *winning_lines)
+    return winnings - total_bet
+
+def main():
+    balance = deposit()
+    while True:
+        print(f"Current balance is ${balance}")
+        spin_game = input("Press enter to spin (press q to quit). ")
+        if spin_game == "q":
+            break
+        balance += spin(balance)
+
+    print(f"You left with ${balance}")
 
 main()
